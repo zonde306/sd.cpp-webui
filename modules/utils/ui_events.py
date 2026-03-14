@@ -111,6 +111,65 @@ def bind_generation_pipeline(
             queue_display
         )
 
+    def run_job_sync(*args):
+        params = dict(zip(ordered_keys, args))
+        last_result = None
+
+        for result in api_func(params):
+            if isinstance(result, (tuple, list)) and len(result) >= 5:
+                last_result = result
+
+        images = last_result[4] if last_result else None
+
+        if images:
+            image_exts = {
+                ".png", ".jpg", ".jpeg", ".webp",
+                ".bmp", ".gif", ".tif", ".tiff"
+            }
+
+            def is_image_path(item):
+                return (
+                    isinstance(item, str) and
+                    os.path.splitext(item)[1].lower() in image_exts
+                )
+
+            if isinstance(images, (list, tuple)):
+                should_decrypt = any(is_image_path(img) for img in images)
+            else:
+                should_decrypt = is_image_path(images)
+
+            if should_decrypt:
+                from modules.utils.image_display import decrypt_and_display
+                images = decrypt_and_display(images)
+
+            from PIL import Image
+
+            def load_image_from_path(path):
+                if path and os.path.exists(path):
+                    try:
+                        return Image.open(path)
+                    except Exception:
+                        return None
+                return None
+
+            if isinstance(images, (list, tuple)):
+                loaded = []
+                for img in images:
+                    if isinstance(img, str):
+                        loaded_img = load_image_from_path(img)
+                        loaded.append(loaded_img if loaded_img is not None else img)
+                    else:
+                        loaded.append(img)
+                images = loaded
+            elif isinstance(images, str):
+                loaded_img = load_image_from_path(images)
+                images = loaded_img if loaded_img is not None else images
+
+        if images is None:
+            return None
+
+        return list(images) if isinstance(images, (list, tuple)) else [images]
+
     outputs_map['gen_btn'].click(
         fn=submit_job,
         inputs=ordered_components,
@@ -119,6 +178,17 @@ def bind_generation_pipeline(
             outputs_map['progress_textbox'],
         ],
         api_name="generate"
+    )
+
+    api_gen_btn = outputs_map.get('api_gen_btn')
+    if api_gen_btn is None:
+        api_gen_btn = gr.Button(value="API Generate", visible=False)
+
+    api_gen_btn.click(
+        fn=run_job_sync,
+        inputs=ordered_components,
+        outputs=[outputs_map['img_final']],
+        api_name=f"{tab_id}_generate"
     )
 
     outputs_map['timer'].tick(
