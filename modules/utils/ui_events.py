@@ -105,7 +105,8 @@ def bind_generation_pipeline(
         outputs=[
             outputs_map['progress_slider'],
             outputs_map['progress_textbox'],
-        ]
+        ],
+        api_name="generate"
     )
 
     outputs_map['timer'].tick(

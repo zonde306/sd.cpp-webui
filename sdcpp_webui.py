@@ -298,6 +298,7 @@ def sdcpp_launch(
     sdcpp.launch(
         css="footer {visibility: hidden}",
         theme="default", js=dark_js,
+        share=True, show_api=True,
         **launch_args
     )
 
