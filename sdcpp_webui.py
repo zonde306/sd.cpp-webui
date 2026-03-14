@@ -200,7 +200,8 @@ def sdcpp_launch(
         launch_args["allowed_paths"] = allowed_paths
 
     with gr.Blocks(
-        title="sd.cpp-webui"
+        title="sd.cpp-webui",
+        show_api=True,
     ) as sdcpp:
 
         gallery_loaded_state = gr.State(value=False)
@@ -298,7 +299,7 @@ def sdcpp_launch(
     sdcpp.launch(
         css="footer {visibility: hidden}",
         theme="default", js=dark_js,
-        share=True, show_api=True,
+        share=True,
         **launch_args
     )
 
