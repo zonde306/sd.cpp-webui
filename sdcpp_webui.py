@@ -201,7 +201,6 @@ def sdcpp_launch(
 
     with gr.Blocks(
         title="sd.cpp-webui",
-        show_api=True,
     ) as sdcpp:
 
         gallery_loaded_state = gr.State(value=False)
